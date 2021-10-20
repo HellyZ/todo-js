@@ -7,13 +7,6 @@ function uniqueId() {
   return Date.now().toString(36) + Math.random().toString(36).substring(2);
 }
 
-const init = function () {
-  for (let i = 0, length = localStorage.length; i < length; i++) {
-    const key = localStorage.key(i);
-    const value = localStorage[key];
-  }
-};
-
 function handleListItemComplete(event) {
   const todoItem = event.target.parentElement.parentElement;
   let storedItem = JSON.parse(localStorage.getItem(todoItem.id));
@@ -36,28 +29,32 @@ function handleListItemDelete(event) {
   event.stopPropagation();
 }
 
+function createTodoItemElement(item) {
+  const li = document.createElement("li");
+  li.classList.add("todo-item");
+  li.setAttribute("id", item.id);
+  li.innerHTML = `<span class='text-todo'>${item.text}</span><div class='todo-buttons'><button class='todo-remove'></button><button class='todo-complete'></button></div>`;
+
+  li.querySelector(".todo-complete").addEventListener(
+    "click",
+    handleListItemComplete
+  );
+
+  li.querySelector(".todo-remove").addEventListener(
+    "click",
+    handleListItemDelete
+  );
+  return li;
+}
+
 const displayTodos = function () {
   const todos = Object.values(localStorage).map((i) => {
     return JSON.parse(i);
   });
   todos.forEach(function (item) {
-    const li = document.createElement("li");
-    li.classList.add("todo-item");
-    li.setAttribute("id", item.id);
-    li.innerHTML = `<span class='text-todo'>${item.text}</span><div class='todo-buttons'><button class='todo-remove'></button><button class='todo-complete'></button></div>`;
-
-    li.querySelector(".todo-complete").addEventListener(
-      "click",
-      handleListItemComplete
-    );
-
-    li.querySelector(".todo-remove").addEventListener(
-      "click",
-      handleListItemDelete
-    );
+    const li = createTodoItemElement(item);
 
     !item.completed ? todoListEL.appendChild(li) : todoCompletedEL.append(li);
-
   });
 };
 
@@ -72,11 +69,12 @@ todoControl.addEventListener("submit", function (event) {
     console.log(newTodo);
     localStorage.setItem(newTodo.id, JSON.stringify(newTodo));
     headerInput.value = "";
-    document.location.reload();
+    const li = createTodoItemElement(newTodo);
+
+    todoListEL.appendChild(li);
   } else {
     console.log("Пустая задача");
   }
 });
 
-init();
 displayTodos();
