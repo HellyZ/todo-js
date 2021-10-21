@@ -9,10 +9,18 @@ function uniqueId() {
 
 function handleListItemComplete(event) {
   const todoItem = event.target.parentElement.parentElement;
-  let storedItem = JSON.parse(localStorage.getItem(todoItem.id));
-  storedItem.completed = !storedItem.completed;
-  localStorage.setItem(storedItem.id, JSON.stringify(storedItem));
-  if (storedItem.completed) {
+  console.log(todoItem);
+  let todos = JSON.parse(localStorage.getItem("todos"));
+
+  // for (let i = 0; i < localStorage.getItem("todos").length; i++) {
+  //   storedItem[i] = localStorage.getItem(localStorage.key(todoItem));
+  // }
+  todos[todoItem.id].completed = !todos[todoItem.id].completed;
+  // localStorage.setItem("todos", "");
+  localStorage.removeItem("todos");
+  localStorage.setItem("todos", JSON.stringify(todos));
+
+  if (todos[todoItem.id].completed) {
     todoItem.parentElement.removeChild(todoItem);
     todoCompletedEL.appendChild(todoItem);
   } else {
@@ -24,7 +32,9 @@ function handleListItemComplete(event) {
 
 function handleListItemDelete(event) {
   const todoItem = event.target.parentElement.parentElement;
-  localStorage.removeItem(todoItem.id);
+  let todos = JSON.parse(localStorage.getItem("todos"));
+  delete todos[todoItem.id];
+  localStorage.setItem("todos", JSON.stringify(todos));
   todoItem.parentElement.removeChild(todoItem);
   event.stopPropagation();
 }
@@ -48,17 +58,15 @@ function createTodoItemElement(item) {
 }
 
 const displayTodos = function () {
-  const todos = Object.values(localStorage).map((i) => {
-    return JSON.parse(i);
-  });
-  todos.forEach(function (item) {
-    const li = createTodoItemElement(item);
-
-    !item.completed ? todoListEL.appendChild(li) : todoCompletedEL.append(li);
-  });
+  let todos = JSON.parse(localStorage.getItem("todos")) || {};
+  console.log(todos);
+  for (const [key, value] of Object.entries(todos)) {
+    const li = createTodoItemElement(value);
+    !value.completed ? todoListEL.appendChild(li) : todoCompletedEL.append(li);
+  }
 };
 
-todoControl.addEventListener("submit", function (event) {
+function handleAddTodo(event) {
   event.preventDefault();
   if (headerInput.value) {
     const newTodo = {
@@ -66,8 +74,9 @@ todoControl.addEventListener("submit", function (event) {
       text: headerInput.value,
       completed: false,
     };
-    console.log(newTodo);
-    localStorage.setItem(newTodo.id, JSON.stringify(newTodo));
+    let todos = JSON.parse(localStorage.getItem("todos")) || {};
+    todos[newTodo.id] = newTodo;
+    localStorage.setItem("todos", JSON.stringify(todos));
     headerInput.value = "";
     const li = createTodoItemElement(newTodo);
 
@@ -75,6 +84,8 @@ todoControl.addEventListener("submit", function (event) {
   } else {
     console.log("Пустая задача");
   }
-});
+}
+
+todoControl.addEventListener("submit", handleAddTodo);
 
 displayTodos();
